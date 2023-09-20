@@ -1,0 +1,136 @@
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+        <link rel="shortcut icon" href="#">
+        <title>panday.4 Lab3</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous"> -->
+    </head>
+    <body>
+        <div class="container-fluid p-5 bg-info text-white text-center">
+            <h1>Crisis Report Dashboard</h1>
+            <label for="report">Choose the report:</label>
+                    <select name="report_of" id="report_of">
+                    <option value="sewer_and_water" selected>sewer_and_water</option>
+                    <option value="power">power</option>
+                    <option value="roads_and_bridges" >roads_and_bridges</option>
+                    <option value="medical">medical</option>
+                    <option value="buildings">buildings</option>
+                    <option value="shake_intensity">shake_intensity</option>
+            </select>
+
+            <label for="date">Date</label>
+                    <select name="date" id="date">
+                    <option value="2020-04-06" selected>2020-04-06</option>
+                    <option value="2020-04-07" >2020-04-07</option>
+                    <option value="2020-04-08" >2020-04-08</option>
+                    <option value="2020-04-09">2020-04-09</option>
+                    <option value="2020-04-10">2020-04-10</option>
+                    
+            </select>
+            <button type="button" class="btn btn-success" id="updatebutton" onclick="updateall(document.getElementById('report_of').value,document.getElementById('date').value)">Update</button>
+            
+            
+          </div>
+            
+          <div class="container-fluid mt-5 text-center">
+            <div class="row">
+              <div class="col-sm-6">
+                <div id="map">
+                    <h3>Map of St. Himark</h3>
+                    <div id="tooltip_map" class="hidden">
+                        <p><strong>State</strong></p>
+		        <p><span id="state">100</span></p>
+                    </div>
+
+                    <svg id="canvas_map"></svg>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div id="bar_graph_time_date">
+                    <div id="tooltip_bar_graph_time_date"></div>
+                    <svg id="canvas_bar_graph_time_date"></svg>     
+            </div>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div id="scatter_plot_power_count">
+                        <div id="tooltip_scatter_plot_power_count"></div>
+                        <svg id="canvas_scatter_plot_power_count"></svg>  
+                        <p>Power Chart</p>
+                </div>
+                </div>
+                <div class="col-sm-4">
+                    <div id="line_chart_power_plant">
+                        <div id="tooltip_line_chart_power_plant"></div>
+                        <svg id="canvas_line_chart_power_plant"></svg>
+                        <p>Nuclear Power Plant Chart</p>
+                </div>
+                </div>
+                <div class="col-sm-4">
+                    <label for="hospital">Hospital</label>
+                    <select name="hospital" id="hospital">
+                    <option value="1" selected>HIMARK GENERAL</option>
+                    <option value="3" >OLD TOWN HOSPITAL</option>
+                    <option value="6" >TRAUMA HOSPITAL</option>
+                    <option value="6">CHILDREN HOSPITAL</option>
+                    <option value="9">COMMUNITY HOSPITAL</option>
+                    <option value="11">GOLDCARE HOSPITAL</option>
+                    <option value="16">EAGLEPEAK HOSPITAL</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="updatehospitalchart" onclick="updatehospitalchart(document.getElementById('report_of').value,document.getElementById('date').value)"> Update Hospital Chart</button>
+                <div id="line_chart">
+            <svg id="canvas_line_chart"></svg>
+            <p>Hospital Chart</p>
+        </div>
+                </div>
+                
+              </div>
+          </div>
+
+            
+            <script src="f.js"></script>
+           
+        <style>
+            label{
+                font-size: 15px;
+            }
+            select{
+                font-size: 12px;
+            }
+            button{
+                size: 12;
+            }
+
+            #tooltip_map{
+                    position: absolute;
+                    width: 150px;
+                    height: auto;
+                    padding: 10px;
+                    background-color: rgb(243, 242, 239);
+                    -webkit-border-radius: 10px;
+                    -moz-border-radius: 10px;
+                    border-radius: 10px;
+                    -webkit-box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+                    -moz-box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+                    box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+                    pointer-events: none;
+                    }
+            #tooltip_map.hidden{
+                    display: none;
+            }
+            #tooltip_map p{
+                    margin: 0;
+                    font-family: sans-serif;
+                    font-size: 16px;
+                    line-height: 20px;
+            }
+
+            
+        </style>
+
+    </body>
+</html>

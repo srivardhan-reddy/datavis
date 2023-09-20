@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+
+<!-- Example based on http://bl.ocks.org/mbostock/3887118 -->
+<!-- tooltip_power_count example from http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html -->
+<!-- Coding style based on http://gist.github.com/mbostock/5977197 -->
+
+<style>
+body {
+  font: 11px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #000;
+}
+
+.tooltip_power_count {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+}
+</style>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+<script>
+var margin_power_count = {top: 20, right: 20, bottom: 30, left: 40},
+width_power_count = 960 - margin_power_count.left - margin_power_count.right,
+    height_power_count = 500 - margin_power_count.top - margin_power_count.bottom,
+    idleTimeout, idleDelay = 350;
+
+
+// setup fill color
+var cValue = function(d) { return d.location;};
+//var color = d3.scaleOrdinal().range(d3.schemeCategory20);
+
+// add the graph canvas to the body of the webpage
+var svg_power_count = d3.select("body").append("svg")
+    .attr("width", width_power_count + margin_power_count.left + margin_power_count.right)
+    .attr("height", height_power_count + margin_power_count.top + margin_power_count.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin_power_count.left + "," + margin_power_count.top + ")");
+
+
+
+// add the tooltip_power_count area to the webpage
+var tooltip_power_count = d3.select("body").append('div')
+    .attr("class", "tooltip_power_count")
+    .style("opacity", 0);
+
+
+// load data
+d3.csv("power_count_date_zoom.csv").then((data, error) => {
+  var brush = d3.brush().on("end", brushended);
+
+  var x = d3.scaleTime().range([0, width_power_count]);
+var y = d3.scaleLinear().range([height_power_count, 0]);
+
+var xAxis = d3.axisBottom(x);
+
+var yAxis = d3.axisLeft(y);
+
+function brushended() {
+      var s = d3.event.selection;
+      if (!s) {
+        if (!idleTimeout)
+          return idleTimeout = setTimeout(idled, idleDelay);
+        x.domain(x0);
+        y.domain(y0);
+      } else {
+        x.domain([s[0][0], s[1][0]].map(x.invert, x));
+        y.domain([s[1][1], s[0][1]].map(y.invert, y));
+        svg_power_count.select(".brush").call(brush.move, null);
+      }
+      zoom();
+    }
+
+    function idled() {
+      idleTimeout = null;
+    }
+
+    function zoom() {
+      var t = svg_power_count.transition().duration(750);
+      svg_power_count.select(".axis--x").transition(t).call(xAxis);
+      svg_power_count.select(".axis--y").transition(t).call(yAxis);
+      svg_power_count.selectAll("circle").transition(t)
+        .attr("cx", function(d) {
+          return x(moment(d.index).toDate());
+        })
+        .attr("cy", function(d) {
+          return y(d.count);
+        });
+    }
+
+  var x0 = d3.extent(data, function(d) {
+    return moment(d.index).toDate();
+  })
+
+  var y0 = d3.extent(data, function(d){
+    return d.count;
+  })
+
+  // don't want dots overlapping axis, so add in buffer to data domain
+//   xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
+//   yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
+var color = d3.scaleOrdinal().domain(data)
+  .range(["gold", "blue", "green", "yellow", "black", "grey", "darkgreen", "pink", "brown", "slateblue", "grey1", "orange", "cyan",
+"magenta", "steelblue", "silver", "mint", "lightgreen", "purple"])
+console.log(color.domain);
+    x.domain(x0).nice();
+    y.domain(y0).nice();
+
+  // x-axis
+  svg_power_count.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + height_power_count + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width_power_count)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("Date");
+
+  // y-axis
+  svg_power_count.append("g")
+      .attr("class", "axis axis--y")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Number of Reports");
+
+  svg_power_count.append("g").attr("class", "brush").call(brush).append("g")
+    .attr("transform", "translate(" + margin_power_count.left + "," + margin_power_count.top + ")");
+
+    svg_power_count.append("defs").append("clipPath")
+        .attr("id", "clip_power").append("rect")
+        .attr("width", width_power_count)
+        .attr("height", height_power_count);
+
+  var circlegroup = svg_power_count.append("g");
+
+  circlegroup.attr("clip-path", "url(#clip_power)");
+  // draw dots
+  
+  circlegroup.selectAll(".dot")
+      .data(data)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", 3.5)
+      .attr("cx", function(d) { return x(moment(d.index).toDate()); })
+      .attr("cy", function(d) { return y(d.count); })
+      .style("fill", function(d) { 
+        let id=d.location
+        if (id==1){ return "pink" }
+            else if(id==2){ return "rgb(157,77,219)" }
+            else if(id==3){ return "yellow" }
+            else if(id==4){ return "rgb(252,8,79)" }
+            else if(id==5){ return "orange" }
+            else if(id==6){ return "blue" }
+            else if(id==7){ return "green" }
+            else if(id==8){ return "yellow" }
+            else if(id==9){ return "rgb(157,77,219)" }
+            else if(id==10){ return "lightblue" }
+            else if(id==11){ return "orange" }
+            else if(id==12){ return "pink" }
+            else if(id==13){ return "blue" }
+            else if(id==14){ return "lightblue" }
+            else if(id==15){ return "purple" }
+            else if(id==16){ return "lightgreen" }
+            else if(id==17){ return "yellow" }
+            else if(id==18){ return "orange" }
+            else if(id==19){ return "red" };}) 
+      .on("mouseover", function(d) {
+          tooltip_power_count.transition()
+               .duration(200)
+               .style("opacity", .9);
+          tooltip_power_count.html(" Date : " + moment(d.index).toDate() + " Location : " + d.location)
+               .style("left", (d3.event.pageX + 5) + "px")
+               .style("top", (d3.event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(d) {
+          tooltip_power_count.transition()
+               .duration(500)
+               .style("opacity", 0);
+      });
+
+      svg_power_count.append("rect").attr("x",800).attr("y",0).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",20).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",40).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",60).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",80).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",100).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",120).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",140).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",160).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",180).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",200).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",220).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",240).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",260).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",280).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",300).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",320).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",340).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+      svg_power_count.append("rect").attr("x",790).attr("y",360).attr("width",10).attr("height",10).style("fill", "#69b3a2")
+
+
+  // draw legend
+  // var legend = svg_power_count.selectAll(".legend")
+  //     .data(color.domain())
+  //   .enter().append("g")
+  //     .attr("class", "legend")
+  //     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  // // draw legend colored rectangles
+  // legend.append("rect")
+  //     .attr("x", width_power_count - 18)
+  //     .attr("width", 18)
+  //     .attr("height", 18)
+  //     .style("fill", color);
+
+  // // draw legend text
+  // legend.append("text")
+  //     .attr("x", width_power_count - 24)
+  //     .attr("y", 9)
+  //     .attr("dy", ".35em")
+  //     .style("text-anchor", "end")
+  //     .text(function(d) { console.log(d);return d;})
+});
+
+
+</script>
+</body>
+</html>
